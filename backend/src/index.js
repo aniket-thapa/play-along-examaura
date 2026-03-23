@@ -14,7 +14,9 @@ const adminRoutes = require('./routes/admin');
 
 const dns = require('dns');
 
-dns.setServers(['1.1.1.1']);
+if (process.env.NODE_ENV === 'development') {
+  dns.setServers(['1.1.1.1']);
+}
 
 const app = express();
 
@@ -110,10 +112,17 @@ const bootstrapAdmin = async () => {
 const start = async () => {
   await connectDB();
   await bootstrapAdmin();
-  app.listen(PORT, '0.0.0.0', () => {
-    logger.info(`🚀 QuizLive server running on port ${PORT}`);
-    logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
-  });
+  if (process.env.NODE_ENV === 'development') {
+    app.listen(PORT, '0.0.0.0', () => {
+      logger.info(`🚀 QuizLive server running on port ${PORT}`);
+      logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  } else {
+    app.listen(PORT, () => {
+      logger.info(`🚀 QuizLive server running on port ${PORT}`);
+      logger.info(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    });
+  }
 };
 
 start();
