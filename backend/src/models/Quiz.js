@@ -1,33 +1,39 @@
 const mongoose = require('mongoose');
 
-const optionSchema = new mongoose.Schema({
-  text: { type: String, required: true, trim: true },
-}, { _id: true });
-
-const questionSchema = new mongoose.Schema({
-  text: {
-    type: String,
-    required: [true, 'Question text is required'],
-    trim: true,
+const optionSchema = new mongoose.Schema(
+  {
+    text: { type: String, required: true, trim: true },
   },
-  options: {
-    type: [optionSchema],
-    validate: {
-      validator: (opts) => opts.length >= 2 && opts.length <= 6,
-      message: 'Each question must have 2–6 options',
+  { _id: true },
+);
+
+const questionSchema = new mongoose.Schema(
+  {
+    text: {
+      type: String,
+      required: [true, 'Question text is required'],
+      trim: true,
+    },
+    options: {
+      type: [optionSchema],
+      validate: {
+        validator: (opts) => opts.length >= 2 && opts.length <= 6,
+        message: 'Each question must have 2–6 options',
+      },
+    },
+    correctOptionIndex: {
+      type: Number,
+      required: [true, 'Correct option index is required'],
+      min: 0,
+    },
+    marks: {
+      type: Number,
+      default: 1,
+      min: 0,
     },
   },
-  correctOptionIndex: {
-    type: Number,
-    required: [true, 'Correct option index is required'],
-    min: 0,
-  },
-  marks: {
-    type: Number,
-    default: 1,
-    min: 0,
-  },
-}, { _id: true });
+  { _id: true },
+);
 
 const quizSchema = new mongoose.Schema(
   {
@@ -62,6 +68,10 @@ const quizSchema = new mongoose.Schema(
       type: Boolean,
       default: true,
     },
+    isResultPublished: {
+      type: Boolean,
+      default: false,
+    },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -80,7 +90,7 @@ const quizSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 quizSchema.virtual('totalMarks').get(function () {

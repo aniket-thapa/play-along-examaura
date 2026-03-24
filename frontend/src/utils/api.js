@@ -55,6 +55,7 @@ export const adminAPI = {
   createQuiz: (data) => api.post('/admin/quizzes', data),
   updateQuiz: (id, data) => api.put(`/admin/quizzes/${id}`, data),
   toggleLock: (id) => api.patch(`/admin/quizzes/${id}/toggle-lock`),
+  togglePublish: (id) => api.patch(`/admin/quizzes/${id}/toggle-publish`),
   deleteQuiz: (id) => api.delete(`/admin/quizzes/${id}`),
 };
 

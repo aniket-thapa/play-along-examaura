@@ -28,12 +28,16 @@ router.get('/users', async (req, res) => {
     }
 
     const [users, totalCount] = await Promise.all([
-      User.find(userQuery).select('name email phone gender isVerified createdAt').lean(),
+      User.find(userQuery)
+        .select('name email phone gender isVerified createdAt')
+        .lean(),
       User.countDocuments(userQuery),
     ]);
 
     if (users.length === 0) {
-      return res.status(200).json({ success: true, data: [], totalCount: 0, page, totalPages: 0 });
+      return res
+        .status(200)
+        .json({ success: true, data: [], totalCount: 0, page, totalPages: 0 });
     }
 
     const userIds = users.map((u) => u._id);
@@ -53,22 +57,33 @@ router.get('/users', async (req, res) => {
     ]);
 
     const statsMap = {};
-    attemptStats.forEach((s) => { statsMap[s._id.toString()] = s; });
+    attemptStats.forEach((s) => {
+      statsMap[s._id.toString()] = s;
+    });
 
     const enriched = users.map((u) => {
-      const stats = statsMap[u._id.toString()] || { totalScore: 0, totalMarks: 0, quizzesAttempted: 0 };
+      const stats = statsMap[u._id.toString()] || {
+        totalScore: 0,
+        totalMarks: 0,
+        quizzesAttempted: 0,
+      };
       return {
         ...u,
         totalScore: stats.totalScore,
         totalMarks: stats.totalMarks,
         quizzesAttempted: stats.quizzesAttempted,
-        percentage: stats.totalMarks > 0 ? Math.round((stats.totalScore / stats.totalMarks) * 100) : 0,
+        percentage:
+          stats.totalMarks > 0
+            ? Math.round((stats.totalScore / stats.totalMarks) * 100)
+            : 0,
         lastAttemptAt: stats.lastAttemptAt || null,
       };
     });
 
     // Sort by total score descending
-    enriched.sort((a, b) => b.totalScore - a.totalScore || a.name.localeCompare(b.name));
+    enriched.sort(
+      (a, b) => b.totalScore - a.totalScore || a.name.localeCompare(b.name),
+    );
 
     const paginated = enriched.slice(skip, skip + limit);
 
@@ -89,9 +104,14 @@ router.get('/users', async (req, res) => {
 router.get('/users/:id/attempts', async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ success: false, message: 'Invalid user ID' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid user ID' });
     }
-    const attempts = await Attempt.find({ user: req.params.id, isSubmitted: true })
+    const attempts = await Attempt.find({
+      user: req.params.id,
+      isSubmitted: true,
+    })
       .populate('quiz', 'title durationSeconds')
       .sort({ submittedAt: -1 })
       .lean();
@@ -99,7 +119,9 @@ router.get('/users/:id/attempts', async (req, res) => {
     res.status(200).json({ success: true, data: attempts });
   } catch (error) {
     logger.error('Admin get user attempts error:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch attempts' });
+    res
+      .status(500)
+      .json({ success: false, message: 'Failed to fetch attempts' });
   }
 });
 
@@ -112,10 +134,18 @@ router.get('/quizzes', async (req, res) => {
     const quizIds = quizzes.map((q) => q._id);
     const counts = await Attempt.aggregate([
       { $match: { quiz: { $in: quizIds }, isSubmitted: true } },
-      { $group: { _id: '$quiz', count: { $sum: 1 }, avgScore: { $avg: '$score' } } },
+      {
+        $group: {
+          _id: '$quiz',
+          count: { $sum: 1 },
+          avgScore: { $avg: '$score' },
+        },
+      },
     ]);
     const countMap = {};
-    counts.forEach((c) => { countMap[c._id.toString()] = c; });
+    counts.forEach((c) => {
+      countMap[c._id.toString()] = c;
+    });
 
     const result = quizzes.map((q) => ({
       ...q,
@@ -126,7 +156,9 @@ router.get('/quizzes', async (req, res) => {
     res.status(200).json({ success: true, data: result });
   } catch (error) {
     logger.error('Admin get quizzes error:', error);
-    res.status(500).json({ success: false, message: 'Failed to fetch quizzes' });
+    res
+      .status(500)
+      .json({ success: false, message: 'Failed to fetch quizzes' });
   }
 });
 
@@ -134,7 +166,13 @@ router.get('/quizzes', async (req, res) => {
 router.post('/quizzes', validate(schemas.createQuiz), async (req, res) => {
   try {
     const quiz = await Quiz.create({ ...req.body, createdBy: req.user._id });
-    res.status(201).json({ success: true, message: 'Quiz created successfully', data: quiz });
+    res
+      .status(201)
+      .json({
+        success: true,
+        message: 'Quiz created successfully',
+        data: quiz,
+      });
   } catch (error) {
     logger.error('Admin create quiz error:', error);
     res.status(500).json({ success: false, message: 'Failed to create quiz' });
@@ -145,18 +183,26 @@ router.post('/quizzes', validate(schemas.createQuiz), async (req, res) => {
 router.put('/quizzes/:id', async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ success: false, message: 'Invalid quiz ID' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid quiz ID' });
     }
 
-    const { _id, createdBy, createdAt, updatedAt, __v, ...updateData } = req.body;
+    const { _id, createdBy, createdAt, updatedAt, __v, ...updateData } =
+      req.body;
     const quiz = await Quiz.findByIdAndUpdate(
       req.params.id,
       { $set: updateData },
-      { new: true, runValidators: true }
+      { new: true, runValidators: true },
     );
-    if (!quiz) return res.status(404).json({ success: false, message: 'Quiz not found' });
+    if (!quiz)
+      return res
+        .status(404)
+        .json({ success: false, message: 'Quiz not found' });
 
-    res.status(200).json({ success: true, message: 'Quiz updated', data: quiz });
+    res
+      .status(200)
+      .json({ success: true, message: 'Quiz updated', data: quiz });
   } catch (error) {
     logger.error('Admin update quiz error:', error);
     res.status(500).json({ success: false, message: 'Failed to update quiz' });
@@ -167,10 +213,15 @@ router.put('/quizzes/:id', async (req, res) => {
 router.patch('/quizzes/:id/toggle-lock', async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ success: false, message: 'Invalid quiz ID' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid quiz ID' });
     }
     const quiz = await Quiz.findById(req.params.id);
-    if (!quiz) return res.status(404).json({ success: false, message: 'Quiz not found' });
+    if (!quiz)
+      return res
+        .status(404)
+        .json({ success: false, message: 'Quiz not found' });
 
     quiz.isLocked = !quiz.isLocked;
     await quiz.save();
@@ -186,14 +237,49 @@ router.patch('/quizzes/:id/toggle-lock', async (req, res) => {
   }
 });
 
+// PATCH /api/admin/quizzes/:id/toggle-publish
+router.patch('/quizzes/:id/toggle-publish', async (req, res) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid quiz ID' });
+    }
+    const quiz = await Quiz.findById(req.params.id);
+    if (!quiz)
+      return res
+        .status(404)
+        .json({ success: false, message: 'Quiz not found' });
+
+    quiz.isResultPublished = !quiz.isResultPublished;
+    await quiz.save();
+
+    res.status(200).json({
+      success: true,
+      message: `Quiz results ${quiz.isResultPublished ? 'published' : 'hidden'}`,
+      isResultPublished: quiz.isResultPublished,
+    });
+  } catch (error) {
+    logger.error('Toggle publish error:', error);
+    res
+      .status(500)
+      .json({ success: false, message: 'Failed to toggle publish status' });
+  }
+});
+
 // DELETE /api/admin/quizzes/:id
 router.delete('/quizzes/:id', async (req, res) => {
   try {
     if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
-      return res.status(400).json({ success: false, message: 'Invalid quiz ID' });
+      return res
+        .status(400)
+        .json({ success: false, message: 'Invalid quiz ID' });
     }
     const quiz = await Quiz.findByIdAndDelete(req.params.id);
-    if (!quiz) return res.status(404).json({ success: false, message: 'Quiz not found' });
+    if (!quiz)
+      return res
+        .status(404)
+        .json({ success: false, message: 'Quiz not found' });
 
     // Cascade delete attempts
     await Attempt.deleteMany({ quiz: req.params.id });
@@ -208,7 +294,13 @@ router.delete('/quizzes/:id', async (req, res) => {
 // GET /api/admin/stats — dashboard overview
 router.get('/stats', async (req, res) => {
   try {
-    const [totalUsers, verifiedUsers, totalQuizzes, activeQuizzes, totalAttempts] = await Promise.all([
+    const [
+      totalUsers,
+      verifiedUsers,
+      totalQuizzes,
+      activeQuizzes,
+      totalAttempts,
+    ] = await Promise.all([
       User.countDocuments({ role: 'user' }),
       User.countDocuments({ role: 'user', isVerified: true }),
       Quiz.countDocuments(),
@@ -218,7 +310,13 @@ router.get('/stats', async (req, res) => {
 
     res.status(200).json({
       success: true,
-      data: { totalUsers, verifiedUsers, totalQuizzes, activeQuizzes, totalAttempts },
+      data: {
+        totalUsers,
+        verifiedUsers,
+        totalQuizzes,
+        activeQuizzes,
+        totalAttempts,
+      },
     });
   } catch (error) {
     logger.error('Admin stats error:', error);
