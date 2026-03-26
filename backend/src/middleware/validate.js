@@ -27,14 +27,7 @@ const schemas = {
     gender: Joi.string()
       .valid('male', 'female', 'other', 'prefer_not_to_say')
       .required(),
-    password: Joi.string()
-      .min(8)
-      .pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-      .required()
-      .messages({
-        'string.pattern.base':
-          'Password must contain uppercase, lowercase, and a number',
-      }),
+    password: Joi.string().min(6).required(),
   }),
 
   login: Joi.object({

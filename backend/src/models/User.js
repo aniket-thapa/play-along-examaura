@@ -32,7 +32,7 @@ const userSchema = new mongoose.Schema(
     password: {
       type: String,
       required: [true, 'Password is required'],
-      minlength: [8, 'Password must be at least 8 characters'],
+      minlength: [6, 'Password must be at least 6 characters'],
       select: false,
     },
     role: {
@@ -70,7 +70,7 @@ const userSchema = new mongoose.Schema(
     timestamps: true,
     toJSON: { virtuals: true },
     toObject: { virtuals: true },
-  }
+  },
 );
 
 userSchema.index({ role: 1, isVerified: 1 });
@@ -97,9 +97,12 @@ userSchema.methods.generateOTP = function () {
 };
 
 userSchema.methods.verifyOTP = function (inputOtp) {
-  if (!this.otp || !this.otpExpiry) return { valid: false, reason: 'No OTP found' };
-  if (this.otpAttempts >= 5) return { valid: false, reason: 'Too many attempts' };
-  if (new Date() > this.otpExpiry) return { valid: false, reason: 'OTP expired' };
+  if (!this.otp || !this.otpExpiry)
+    return { valid: false, reason: 'No OTP found' };
+  if (this.otpAttempts >= 5)
+    return { valid: false, reason: 'Too many attempts' };
+  if (new Date() > this.otpExpiry)
+    return { valid: false, reason: 'OTP expired' };
   if (this.otp !== inputOtp) {
     this.otpAttempts += 1;
     return { valid: false, reason: 'Invalid OTP' };
