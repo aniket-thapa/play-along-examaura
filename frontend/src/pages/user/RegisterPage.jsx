@@ -21,10 +21,8 @@ const validate = (form) => {
     errs.phone = 'Enter a valid phone number';
   if (!/^\S+@\S+\.\S+$/.test(form.email)) errs.email = 'Enter a valid email';
   if (!form.gender) errs.gender = 'Please select a gender';
-  if (form.password.length < 8)
-    errs.password = 'Password must be at least 8 characters';
-  if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/.test(form.password))
-    errs.password = 'Must contain uppercase, lowercase, and a number';
+  if (form.password.length < 6)
+    errs.password = 'Password must be at least 6 characters';
   return errs;
 };
 
