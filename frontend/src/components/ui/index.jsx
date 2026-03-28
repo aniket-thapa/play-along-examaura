@@ -337,7 +337,7 @@ export const Logo = ({ size = 'md' }) => {
       className={`font-display font-bold ${sizes[size]} flex items-center gap-2`}
     >
       <span className="text-brand-300">⚡</span>
-      <span className="text-gradient">ExamAura</span>
+      <span className="text-gradient">Digitines</span>
     </div>
   );
 };

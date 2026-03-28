@@ -25,17 +25,17 @@ const sendOTPEmail = async (to, name, otp) => {
     <head>
       <meta charset="utf-8">
       <meta name="viewport" content="width=device-width, initial-scale=1.0">
-      <title>ExamAura - Email Verification</title>
+      <title>Digitines - Email Verification</title>
     </head>
     <body style="margin:0;padding:0;background:#0a0a0f;font-family:'Segoe UI',Arial,sans-serif;">
       <div style="max-width:480px;margin:0 auto;padding:40px 20px;">
         <div style="background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid #00d4ff22;border-radius:16px;padding:40px;text-align:center;">
-          <h1 style="color:#ffffff;font-size:24px;margin:0 0 8px;font-weight:700;letter-spacing:-0.5px;">ExamAura</h1>
+          <h1 style="color:#ffffff;font-size:24px;margin:0 0 8px;font-weight:700;letter-spacing:-0.5px;">Digitines</h1>
           <p style="color:#8892a4;font-size:14px;margin:0 0 32px;">Live Event Quiz</p>
           
           <p style="color:#ccd6f6;font-size:16px;margin:0 0 8px;">Hi <strong style="color:#00d4ff;">${name}</strong>,</p>
           <p style="color:#8892a4;font-size:14px;margin:0 0 32px;line-height:1.6;">
-            Welcome to ExamAura! Use the verification code below to confirm your account.
+            Welcome to Digitines! Use the verification code below to confirm your account.
           </p>
           
           <div style="background:#0a0a0f;border:2px solid #00d4ff;border-radius:12px;padding:12px;margin:0 0 28px;">
@@ -50,7 +50,7 @@ const sendOTPEmail = async (to, name, otp) => {
           </p>
         </div>
         <p style="color:#4a5568;font-size:12px;text-align:center;margin:20px 0 0;">
-          © ${new Date().getFullYear()} ExamAura. All rights reserved.
+          © ${new Date().getFullYear()} Digitines. All rights reserved.
         </p>
       </div>
     </body>
@@ -59,9 +59,9 @@ const sendOTPEmail = async (to, name, otp) => {
 
   try {
     const info = await getTransporter().sendMail({
-      from: `"ExamAura" <${process.env.EMAIL_USER}>`,
+      from: `"Digitines" <${process.env.EMAIL_USER}>`,
       to,
-      subject: `${otp} - Your ExamAura Verification Code`,
+      subject: `${otp} - Your Digitines Quiz Verification Code`,
       html,
     });
     logger.info(`OTP email sent to ${to}: ${info.messageId}`);
