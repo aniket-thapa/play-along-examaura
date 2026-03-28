@@ -31,6 +31,11 @@ const questionSchema = new mongoose.Schema(
       default: 1,
       min: 0,
     },
+    negativeMarks: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
   },
   { _id: true },
 );

@@ -453,6 +453,7 @@ const CreateQuizForm = ({ onCreated }) => {
       options: [{ text: '' }, { text: '' }],
       correctOptionIndex: 0,
       marks: 1,
+      negativeMarks: 0.25,
     },
   ]);
   const [submitting, setSubmitting] = useState(false);
@@ -466,6 +467,7 @@ const CreateQuizForm = ({ onCreated }) => {
         options: [{ text: '' }, { text: '' }],
         correctOptionIndex: 0,
         marks: 1,
+        negativeMarks: 0.25,
       },
     ]);
 
@@ -548,6 +550,7 @@ const CreateQuizForm = ({ onCreated }) => {
           options: [{ text: '' }, { text: '' }],
           correctOptionIndex: 0,
           marks: 1,
+          negativeMarks: 0.25,
         },
       ]);
     } catch (err) {
@@ -724,7 +727,7 @@ const CreateQuizForm = ({ onCreated }) => {
               ))}
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-wrap gap-2">
               {q.options.length < 6 && (
                 <button
                   onClick={() => addOption(qi)}
@@ -733,21 +736,49 @@ const CreateQuizForm = ({ onCreated }) => {
                   + Add Option
                 </button>
               )}
-              <div className="flex items-center gap-2 ml-auto">
-                <label className="text-xs text-[#8890b8]">Marks:</label>
-                <input
-                  type="number"
-                  min={1}
-                  value={q.marks}
-                  onChange={(e) =>
-                    updateQuestion(qi, 'marks', parseInt(e.target.value) || 1)
-                  }
-                  className="w-14 input-base text-sm py-1.5 px-2 text-center"
-                />
+              <div className="flex items-center gap-3 ml-auto">
+                {/* Marks */}
+                <div className="flex items-center gap-1.5">
+                  <label className="text-xs text-[#8890b8] whitespace-nowrap">
+                    +Marks:
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={1}
+                    value={q.marks}
+                    onChange={(e) =>
+                      updateQuestion(qi, 'marks', parseInt(e.target.value) || 0)
+                    }
+                    className="w-14 input-base text-sm py-1.5 px-2 text-center"
+                  />
+                </div>
+                {/* Negative Marks */}
+                <div className="flex items-center gap-1.5">
+                  <label className="text-xs text-red-400 whitespace-nowrap">
+                    −Penalty:
+                  </label>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.25}
+                    value={q.negativeMarks}
+                    onChange={(e) => {
+                      const val = parseFloat(e.target.value);
+                      updateQuestion(
+                        qi,
+                        'negativeMarks',
+                        isNaN(val) ? 0 : Math.max(0, val),
+                      );
+                    }}
+                    className="w-16 input-base text-sm py-1.5 px-2 text-center border-red-500/30 focus:border-red-400"
+                  />
+                </div>
               </div>
             </div>
             <p className="text-[10px] text-[#8890b8]">
-              Tap a letter to mark as correct answer
+              Tap a letter to mark as correct · Wrong answer deducts penalty
+              points · Unanswered = no penalty
             </p>
           </div>
         ))}

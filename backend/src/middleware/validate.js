@@ -68,6 +68,7 @@ const schemas = {
             .required(),
           correctOptionIndex: Joi.number().integer().min(0).required(),
           marks: Joi.number().min(0).default(1),
+          negativeMarks: Joi.number().min(0).default(0),
         }),
       )
       .required(),

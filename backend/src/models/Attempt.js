@@ -1,9 +1,12 @@
 const mongoose = require('mongoose');
 
-const answerSchema = new mongoose.Schema({
-  questionId: { type: mongoose.Schema.Types.ObjectId, required: true },
-  selectedOptionIndex: { type: Number, default: null }, // null = unanswered
-}, { _id: false });
+const answerSchema = new mongoose.Schema(
+  {
+    questionId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    selectedOptionIndex: { type: Number, default: null }, // null = unanswered
+  },
+  { _id: false },
+);
 
 const attemptSchema = new mongoose.Schema(
   {
@@ -56,7 +59,7 @@ const attemptSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  }
+  },
 );
 
 // Each user can have only one submitted attempt per quiz
@@ -64,19 +67,29 @@ attemptSchema.index({ user: 1, quiz: 1 }, { unique: true });
 attemptSchema.index({ user: 1, isSubmitted: 1 });
 attemptSchema.index({ quiz: 1, score: -1 });
 
-// Calculate score from quiz answers
+/**
+ * Calculate score with negative marking support.
+ * - Correct answer: +marks
+ * - Wrong answer (selected but incorrect): -negativeMarks
+ * - Unanswered (null): 0 (no penalty)
+ */
 attemptSchema.methods.calculateScore = function (quiz) {
   let score = 0;
   for (const answer of this.answers) {
     const question = quiz.questions.find(
-      (q) => q._id.toString() === answer.questionId.toString()
+      (q) => q._id.toString() === answer.questionId.toString(),
     );
-    if (
-      question &&
-      answer.selectedOptionIndex !== null &&
-      answer.selectedOptionIndex === question.correctOptionIndex
-    ) {
+    if (!question) continue;
+
+    // Unanswered — no penalty
+    if (answer.selectedOptionIndex === null) continue;
+
+    if (answer.selectedOptionIndex === question.correctOptionIndex) {
+      // Correct answer
       score += question.marks || 1;
+    } else {
+      // Wrong answer — apply negative marking (default 0 = no penalty)
+      score -= question.negativeMarks || 0;
     }
   }
   this.score = score;
