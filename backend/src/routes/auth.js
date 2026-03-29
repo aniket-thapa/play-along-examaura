@@ -165,72 +165,67 @@ router.post('/resend-otp', validate(schemas.resendOtp), async (req, res) => {
 });
 
 // POST /api/auth/login
-router.post(
-  '/login',
-  loginLimiter,
-  validate(schemas.login),
-  async (req, res) => {
-    try {
-      const { email, password } = req.body;
+router.post('/login', validate(schemas.login), async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-      const user = await User.findOne({ email }).select('+password');
-      if (!user) {
-        return res
-          .status(401)
-          .json({ success: false, message: 'Invalid email or password' });
-      }
-      if (!user.isActive) {
-        return res.status(403).json({
-          success: false,
-          message: 'Account is disabled. Contact support.',
-        });
-      }
-
-      const isMatch = await user.comparePassword(password);
-      if (!isMatch) {
-        return res
-          .status(401)
-          .json({ success: false, message: 'Invalid email or password' });
-      }
-
-      if (!user.isVerified && user.role !== 'admin') {
-        // Re-send OTP
-        const otp = user.generateOTP();
-        await user.save();
-        try {
-          await sendOTPEmail(email, user.name, otp);
-        } catch (_) {}
-        return res.status(403).json({
-          success: false,
-          message: 'Email not verified. A new OTP has been sent.',
-          requiresVerification: true,
-          email,
-        });
-      }
-
-      const token = generateToken(user._id);
-
-      res.status(200).json({
-        success: true,
-        message: 'Login successful',
-        token,
-        user: {
-          id: user._id,
-          name: user.name,
-          email: user.email,
-          role: user.role,
-          gender: user.gender,
-          phone: user.phone,
-        },
-      });
-    } catch (error) {
-      logger.error('Login error:', error);
-      res
-        .status(500)
-        .json({ success: false, message: 'Login failed. Please try again.' });
+    const user = await User.findOne({ email }).select('+password');
+    if (!user) {
+      return res
+        .status(401)
+        .json({ success: false, message: 'Invalid email or password' });
     }
-  },
-);
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Account is disabled. Contact support.',
+      });
+    }
+
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      return res
+        .status(401)
+        .json({ success: false, message: 'Invalid email or password' });
+    }
+
+    if (!user.isVerified && user.role !== 'admin') {
+      // Re-send OTP
+      const otp = user.generateOTP();
+      await user.save();
+      try {
+        await sendOTPEmail(email, user.name, otp);
+      } catch (_) {}
+      return res.status(403).json({
+        success: false,
+        message: 'Email not verified. A new OTP has been sent.',
+        requiresVerification: true,
+        email,
+      });
+    }
+
+    const token = generateToken(user._id);
+
+    res.status(200).json({
+      success: true,
+      message: 'Login successful',
+      token,
+      user: {
+        id: user._id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        gender: user.gender,
+        phone: user.phone,
+      },
+    });
+  } catch (error) {
+    logger.error('Login error:', error);
+    res
+      .status(500)
+      .json({ success: false, message: 'Login failed. Please try again.' });
+  }
+});
 
 // GET /api/auth/me
 router.get('/me', authenticate, (req, res) => {
