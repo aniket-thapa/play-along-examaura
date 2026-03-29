@@ -2,7 +2,6 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
-const rateLimit = require('express-rate-limit');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
 const logger = require('./utils/logger');
@@ -31,20 +30,6 @@ app.use(
 );
 app.use(express.json({ limit: '2mb' }));
 app.use(express.urlencoded({ extended: true, limit: '2mb' }));
-
-// Global rate limiter
-app.use(
-  rateLimit({
-    windowMs: 30 * 60 * 1000, // 15 minutes
-    max: 500, // limit each IP to 500 requests per windowMs
-    standardHeaders: true,
-    legacyHeaders: false,
-    message: {
-      success: false,
-      message: 'Too many requests from this IP, please try again later',
-    },
-  }),
-);
 
 // Request logger
 app.use((req, res, next) => {
